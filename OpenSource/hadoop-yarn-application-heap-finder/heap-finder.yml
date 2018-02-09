@@ -1,0 +1,26 @@
+# Title: Heap finder script
+# Author: Priyan S
+# Purpose: Find realtime heap usage of containers used by yarn applications
+# Syntax: ansible-playbook heap-finder.yml -e "java_home=/usr/jdk/jdk1.8.0_112 app_id=application_123400000_0000 worker_nodes=workers"
+# Note: Output will be written to /tmp/heap-finder.op on the ansible server host (from where you run the playbook). $cat /tmp/heap-finder.op to view results.
+
+
+- name: Find heap used by application containers
+  hosts: "{{ worker_nodes }}"
+  become: true
+  become_method: su
+  become_user: root
+
+  tasks:
+        - name: Get heap details
+          shell: "{{ java_home }}/bin/jps -lv| grep {{ app_id }} | awk {'print $1'} >  /tmp/{{ inventory_hostname }}-pids;for i in `cat /tmp/{{ inventory_hostname }}-pids`; do {{ java_home }}/bin/jstat -gc $i  | tail -n 1 | awk '{split($0,a,\" \"); sum=a[3]+a[4]+a[6]+a[8]; print sum/1024}';done > /tmp/{{ inventory_hostname }}-heaps"
+        - name: Print heap outputs
+          shell: cat /tmp/{{ inventory_hostname }}-heaps
+          register: output
+        - debug: var=output.stdout
+        - name: Truncate file
+          become: false
+          local_action: shell  printf "Heap usage for Application {{ app_id }} in MB\n===============================================================\n" > /tmp/heap-finder.op
+        - name: Write output to local
+          become: false
+          local_action: shell printf "{{ inventory_hostname }}\n{{ output.stdout  }}\n" >> /tmp/heap-finder.op
