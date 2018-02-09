@@ -1,6 +1,7 @@
-# Title: Heap finder script
+# Title: Heap finder for YARN apps
 # Author: Priyan S
-# Purpose: Find realtime heap usage of containers used by yarn applications
+# Purpose: Ansible playbook to find heap utilization of all containers held by a YARN appplication.
+# Prerequisite: Ansible version > 4, should have root access on worker nodes.
 # Syntax: ansible-playbook heap-finder.yml -e "java_home=/usr/jdk/jdk1.8.0_112 app_id=application_123400000_0000 worker_nodes=workers"
 # Here, worker_nodes stands for hostnames of all worker nodes in your cluster. You can also use a host group name from your Ansible inventory.
 # Note: Output will be written to /tmp/heap-finder.op on the ansible server host (from where you run the playbook). $cat /tmp/heap-finder.op to view results.
